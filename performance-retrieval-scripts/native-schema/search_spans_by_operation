@@ -1,0 +1,18 @@
+SELECT
+    query,
+    event_time,
+    query_duration_ms,
+    read_rows,
+    formatReadableSize(read_bytes) AS read_bytes,
+    result_rows,
+    formatReadableSize(result_bytes) AS result_bytes,
+    formatReadableSize(memory_usage) AS memory_usage
+FROM system.query_log
+WHERE query LIKE '%SELECT DISTINCT%s.trace_id%FROM spans s%WHERE%s.name =%'
+    AND query NOT LIKE '%s.service_name =%'
+    AND query NOT LIKE '%s.duration%'
+    AND query NOT LIKE '%str_attributes%'
+    AND query NOT LIKE '%s.start_time%'
+    AND query NOT LIKE '%system.query_log%'
+    AND query_duration_ms != 0
+ORDER BY event_time
