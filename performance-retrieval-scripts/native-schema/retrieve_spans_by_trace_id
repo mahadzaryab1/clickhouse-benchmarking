@@ -10,4 +10,5 @@ FROM system.query_log
 WHERE query LIKE '%FROM%spans s%WHERE s.trace_id =%'
     AND query NOT LIKE '%s.start_time%'
     AND query NOT LIKE '%system.query_log%'
+    AND type = 'QueryFinish'
     AND query_duration_ms != 0

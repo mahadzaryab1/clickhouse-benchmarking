@@ -14,4 +14,5 @@ FROM
     operations
 WHERE
     service_name =')
+    AND type = 'QueryFinish'
     AND query_duration_ms != 0

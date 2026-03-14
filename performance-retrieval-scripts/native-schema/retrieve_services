@@ -12,4 +12,5 @@ WHERE startsWith(query, 'SELECT
 FROM
     services
 GROUP BY name')
+    AND type = 'QueryFinish'
     AND query_duration_ms != 0
