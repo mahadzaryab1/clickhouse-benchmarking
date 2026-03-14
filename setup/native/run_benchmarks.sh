@@ -37,7 +37,7 @@ done
 
 run_query() {
     local query="$1"
-    local cmd="docker exec ${CONTAINER} clickhouse-client --database=${DATABASE} --time --query=\"${query}\""
+    local cmd="docker exec ${CONTAINER} clickhouse-client --password password --database=${DATABASE} --time --query=\"${query}\""
     if [[ -n "${HOST}" ]]; then
         ssh "${HOST}" "${cmd}" 2>&1
     else
@@ -47,7 +47,7 @@ run_query() {
 
 run_query_silent() {
     local query="$1"
-    local cmd="docker exec ${CONTAINER} clickhouse-client --database=${DATABASE} --query=\"${query}\""
+    local cmd="docker exec ${CONTAINER} clickhouse-client --password password --database=${DATABASE} --query=\"${query}\""
     if [[ -n "${HOST}" ]]; then
         ssh "${HOST}" "${cmd}" 2>/dev/null
     else
