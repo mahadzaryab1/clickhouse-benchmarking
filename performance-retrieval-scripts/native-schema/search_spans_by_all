@@ -9,4 +9,5 @@ SELECT
 FROM system.query_log
 WHERE query LIKE '%SELECT DISTINCT%s.trace_id%FROM spans s%WHERE%s.service_name =%AND s.name =%AND%s.duration%AND%s.start_time%AND%arrayExists%str_attributes%'
     AND query NOT LIKE '%system.query_log%'
+    AND type = 'QueryFinish'
     AND query_duration_ms != 0

@@ -1,6 +1,9 @@
 SELECT
-    round(count() / (SUM(query_duration_ms) / 1000), 0) AS inserted_spans_per_sec,
-    formatReadableSize(SUM(memory_usage) / count()) AS memory_usage_per_span_insert
+    (SELECT count() FROM spans) AS total_spans,
+    round(SUM(query_duration_ms) / 1000, 1) AS total_duration_sec,
+    round((SELECT count() FROM spans) / (SUM(query_duration_ms) / 1000), 0) AS spans_per_sec,
+    formatReadableSize(SUM(memory_usage) / count()) AS avg_memory_per_batch
 FROM system.query_log
-WHERE query LIKE 'INSERT INTO%spans%'
-    AND query_duration_ms != 0
+WHERE type = 'QueryFinish'
+    AND query LIKE 'INSERT INTO%spans%'
+    AND written_rows > 0
