@@ -15,7 +15,7 @@
 #
 # Usage:
 #   ./run_tracegen.sh [--host HOST] [--container NAME] [--database DB]
-#                     [--traces N] [--days D]
+#                     [--traces N] [--days D] [--tracegen PATH]
 #
 # Examples:
 #   # 100K traces (1M spans), single day
@@ -23,6 +23,9 @@
 #
 #   # 1M traces (10M spans) spread across 5 days
 #   ./run_tracegen.sh --host "opc@64.181.240.35" --traces 1000000 --days 5
+#
+#   # Use a native tracegen binary instead of Docker
+#   ./run_tracegen.sh --tracegen /home/opc/jaeger/tracegen --traces 1000000 --days 5
 
 set -euo pipefail
 
@@ -31,6 +34,7 @@ CONTAINER="clickhouse"
 DATABASE="jaeger"
 TRACES=100000
 DAYS=1
+TRACEGEN=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -39,6 +43,7 @@ while [[ $# -gt 0 ]]; do
         --database)   DATABASE="$2"; shift 2 ;;
         --traces)     TRACES="$2"; shift 2 ;;
         --days)       DAYS="$2"; shift 2 ;;
+        --tracegen)   TRACEGEN="$2"; shift 2 ;;
         *)            echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -128,11 +133,19 @@ for (( d = DAYS - 1; d >= 0; d-- )); do
 
     BATCH_START=$(date +%s)
 
-    run_remote "docker run --rm --network host jaegertracing/jaeger-tracegen \
-      -traces ${BATCH_TRACES} \
-      -spans 9 \
-      -services 2 \
-      -trace-exporter otlp-grpc"
+    if [[ -n "${TRACEGEN}" ]]; then
+        run_remote "${TRACEGEN} \
+          -traces ${BATCH_TRACES} \
+          -spans 9 \
+          -services 2 \
+          -trace-exporter otlp-grpc"
+    else
+        run_remote "docker run --rm --network host jaegertracing/jaeger-tracegen \
+          -traces ${BATCH_TRACES} \
+          -spans 9 \
+          -services 2 \
+          -trace-exporter otlp-grpc"
+    fi
 
     BATCH_END=$(date +%s)
     BATCH_ELAPSED=$(( BATCH_END - BATCH_START ))
