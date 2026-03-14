@@ -1,0 +1,6 @@
+SELECT
+    round(count() / (SUM(query_duration_ms) / 1000), 0) AS inserted_spans_per_sec,
+    formatReadableSize(SUM(memory_usage) / count()) AS memory_usage_per_span_insert
+FROM system.query_log
+WHERE query LIKE 'INSERT INTO%spans%'
+    AND query_duration_ms != 0
