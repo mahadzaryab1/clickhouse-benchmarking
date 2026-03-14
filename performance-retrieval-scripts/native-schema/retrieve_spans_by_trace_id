@@ -1,15 +1,13 @@
 SELECT
-    query,
-    event_time,
-    query_duration_ms,
-    read_rows,
-    formatReadableSize(read_bytes) AS read_bytes,
-    result_rows,
-    formatReadableSize(result_bytes) AS result_bytes,
-    formatReadableSize(memory_usage) AS memory_usage
+    count() AS runs,
+    avg(query_duration_ms) AS avg_duration_ms,
+    avg(read_rows) AS avg_read_rows,
+    formatReadableSize(avg(read_bytes)) AS avg_read_bytes,
+    avg(result_rows) AS avg_result_rows,
+    formatReadableSize(avg(result_bytes)) AS avg_result_bytes,
+    formatReadableSize(avg(memory_usage)) AS avg_memory_usage
 FROM system.query_log
 WHERE query LIKE '%FROM%spans s%WHERE s.trace_id =%'
     AND query NOT LIKE '%s.start_time%'
     AND query NOT LIKE '%system.query_log%'
     AND query_duration_ms != 0
-ORDER BY event_time
