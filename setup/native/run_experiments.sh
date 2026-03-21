@@ -11,7 +11,19 @@ DB="${1:-jaeger}"
 RUNS=3
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-CH="clickhouse-client -d $DB"
+# Auto-detect clickhouse-client: local binary, or via Docker
+if command -v clickhouse-client &>/dev/null; then
+    CH="clickhouse-client -d $DB"
+elif command -v docker &>/dev/null && docker ps 2>/dev/null | grep -q clickhouse; then
+    CH="docker exec -i clickhouse clickhouse-client -d $DB"
+elif command -v podman &>/dev/null && podman ps 2>/dev/null | grep -q clickhouse; then
+    CH="podman exec -i clickhouse clickhouse-client -d $DB"
+else
+    echo "ERROR: clickhouse-client not found and no running ClickHouse container detected."
+    exit 1
+fi
+
+echo "Using: $CH"
 
 echo "=== Attribute Search Optimization Experiments ==="
 echo "Database: $DB"
