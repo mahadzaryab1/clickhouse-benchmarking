@@ -15,14 +15,14 @@
 #
 # Usage:
 #   ./run_tracegen.sh [--host HOST] [--container NAME] [--database DB]
-#                     [--traces N] [--days D] [--tracegen PATH]
+#                     [--traces N] [--days D] [--services S] [--tracegen PATH]
 #
 # Examples:
 #   # 100K traces (1M spans), single day
 #   ./run_tracegen.sh --host "opc@64.181.240.35" --traces 100000
 #
-#   # 1M traces (10M spans) spread across 5 days
-#   ./run_tracegen.sh --host "opc@64.181.240.35" --traces 1000000 --days 5
+#   # 1M traces (10M spans) spread across 5 days with 10 services
+#   ./run_tracegen.sh --host "opc@64.181.240.35" --traces 1000000 --days 5 --services 10
 #
 #   # Use a native tracegen binary instead of Docker
 #   ./run_tracegen.sh --tracegen /home/opc/jaeger/tracegen --traces 1000000 --days 5
@@ -34,6 +34,7 @@ CONTAINER="clickhouse"
 DATABASE="jaeger"
 TRACES=100000
 DAYS=1
+SERVICES=10
 TRACEGEN=""
 
 while [[ $# -gt 0 ]]; do
@@ -43,6 +44,7 @@ while [[ $# -gt 0 ]]; do
         --database)   DATABASE="$2"; shift 2 ;;
         --traces)     TRACES="$2"; shift 2 ;;
         --days)       DAYS="$2"; shift 2 ;;
+        --services)   SERVICES="$2"; shift 2 ;;
         --tracegen)   TRACEGEN="$2"; shift 2 ;;
         *)            echo "Unknown option: $1"; exit 1 ;;
     esac
@@ -98,6 +100,7 @@ echo ""
 echo "  Total traces:     ${TRACES}"
 echo "  Spans per trace:  10 (1 parent + 9 children)"
 echo "  Total spans:      ${TOTAL_SPANS}"
+echo "  Services:         ${SERVICES}"
 echo "  Days:             ${DAYS}"
 echo "  Traces per day:   ${TRACES_PER_DAY}"
 echo ""
@@ -137,13 +140,13 @@ for (( d = DAYS - 1; d >= 0; d-- )); do
         run_remote "${TRACEGEN} \
           -traces ${BATCH_TRACES} \
           -spans 9 \
-          -services 2 \
+          -services ${SERVICES} \
           -trace-exporter otlp-grpc"
     else
         run_remote "docker run --rm --network host jaegertracing/jaeger-tracegen \
           -traces ${BATCH_TRACES} \
           -spans 9 \
-          -services 2 \
+          -services ${SERVICES} \
           -trace-exporter otlp-grpc"
     fi
 
